@@ -9,4 +9,5 @@ public class RethinkdbWorkerApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(RethinkdbWorkerApplication.class, args);
 	}
+
 }

@@ -1,0 +1,56 @@
+package au.id.mcmaster.poc.autosyncpoc.neo4jrest.dto;
+
+
+import org.neo4j.ogm.annotation.NodeEntity;
+
+@NodeEntity
+public class Contact extends BasePOJO {
+	private String firstName = "A";
+	private String lastName = "B";
+	private String phone = "C";
+	private String email= "D";
+	
+	public Contact() {
+		super();
+	}
+	
+	public Contact(long id, String sourceSystem, String sourceUUID, String firstName, String lastName, String phone, String email) {
+		super(id, sourceSystem, sourceUUID);
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.phone = phone;
+		this.email = email;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+}
