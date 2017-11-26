@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import au.id.mcmaster.poc.autosyncpoc.neo4jrest.dto.BasePOJO;
 
+@Deprecated
 @RestController
 public abstract class CrudController<T extends BasePOJO, R extends Neo4jRepository<T,Long>> {
 	@Autowired
@@ -27,9 +28,9 @@ public abstract class CrudController<T extends BasePOJO, R extends Neo4jReposito
 		return this.repository.save(object);
 	}
 	
-	@RequestMapping(method = RequestMethod.GET, value="/{contactId}")
-	public ResponseEntity<T> getContact(@PathVariable long contactId) {
-		T object = this.repository.findOne(contactId,1);
+	@RequestMapping(method = RequestMethod.GET, value="/{objectId}")
+	public ResponseEntity<T> getObject(@PathVariable long objectId) {
+		T object = this.repository.findOne(objectId,1);
 		if (object != null) {
 			return new ResponseEntity<T>(object, HttpStatus.OK);
 		}
@@ -37,5 +38,10 @@ public abstract class CrudController<T extends BasePOJO, R extends Neo4jReposito
 		{
 			return new ResponseEntity<T>(HttpStatus.NOT_FOUND);
 		}
+	}
+	
+	@RequestMapping(method = RequestMethod.DELETE, value="/{objectId}")
+	public void deleteObject(@PathVariable long objectId) {
+		this.repository.delete(objectId);
 	}
 }

@@ -58,14 +58,14 @@ public class RedisService {
 	protected ChangeEvent unmarshalChangeEvent(String message) 
 		throws JsonParseException, JsonMappingException, IOException
 	{
-		ChangeEvent object = objectMapper.readValue(message.getBytes(), ChangeEventNodeChanged.class);
-		System.out.println("ChangeEventNodeChanged: " + object);
+		ChangeEvent object = objectMapper.readValue(message.getBytes(), ChangeEvent.class);
+		LOG.debug("ChangeEventNodeChanged: " + object.getClass().getName());
 		return object;
 	}
 	protected String marshalChangeEvent(ChangeEvent changeEvent) 
 			throws JsonGenerationException, JsonMappingException, IOException {
 		boolean canSerialize = objectMapper.canSerialize(changeEvent.getClass());
-		System.out.println("Can Serialize: " + canSerialize);
+		LOG.debug("Can Serialize: " + canSerialize);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		objectMapper.writeValue(baos, changeEvent);
 		return baos.toString();
@@ -73,7 +73,7 @@ public class RedisService {
 
 	private void sendMessage(String messageString) {
 		StringRedisTemplate template = new StringRedisTemplate(connectionFactory);
-		System.out.println("Sending message to Redis topic: " + messageString);
+		LOG.debug("Sending message to Redis topic: " + messageString);
 		template.convertAndSend(this.topic, messageString);
 	}
 
@@ -81,7 +81,7 @@ public class RedisService {
 		final ChangeEventAdapter changeEventAdapter = new ChangeEventAdapter(listener);
 		final BinaryJedisPubSub binaryJedisPubSub = new BinaryJedisPubSub() {
 	    		public void onMessage(byte[] channel, byte[] message) {
-	    			System.out.println("Received <" + new String(message) + ">");
+	    			LOG.debug("Received <" + new String(message) + ">");
 	    			changeEventAdapter.receiveMessage(new String(message));
 	    		}
 	    	};
@@ -110,7 +110,7 @@ public class RedisService {
 
 	    @SuppressWarnings("unused")
 		public void receiveMessage(String message) {
-	        System.out.println("Received <" + message + ">");
+	    		LOG.debug("Received <" + message + ">");
 			try {
 				ChangeEvent changeEvent = RedisService.this.unmarshalChangeEvent(message);
 				changeEventListener.process(changeEvent);

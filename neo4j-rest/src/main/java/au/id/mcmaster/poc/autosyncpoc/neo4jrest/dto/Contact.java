@@ -5,10 +5,10 @@ import org.neo4j.ogm.annotation.NodeEntity;
 
 @NodeEntity
 public class Contact extends BasePOJO {
-	private String firstName = "A";
-	private String lastName = "B";
-	private String phone = "C";
-	private String email= "D";
+	private String firstName;
+	private String lastName;
+	private String phone;
+	private String email;
 	
 	public Contact() {
 		super();
