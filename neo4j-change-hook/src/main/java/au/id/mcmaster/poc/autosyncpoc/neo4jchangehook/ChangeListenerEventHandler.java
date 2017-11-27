@@ -23,16 +23,11 @@ import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventNodeDeleted;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventRelationshipAdded;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventRelationshipChanged;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventRelationshipDeleted;
-import redis.clients.jedis.JedisShardInfo;
 
-import java.util.*;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.io.File;
-import java.io.FileWriter;
-import java.sql.*;
-import java.text.MessageFormat;
 
 public class ChangeListenerEventHandler implements TransactionEventHandler<String> {
     private final static Logger logger = Logger.getLogger(ChangeListenerEventHandler.class.getName());
@@ -49,7 +44,7 @@ public class ChangeListenerEventHandler implements TransactionEventHandler<Strin
     public ChangeListenerEventHandler(GraphDatabaseService gds) {
         logger.log(Level.FINE, "---- Creating the ExampleEventHandler : Constructor -----");
         this.gds = gds;
-        this.redisService = new RedisService(RedisService.Topics.OUTGOING);
+        this.redisService = new RedisService(RedisService.Topics.OUTGOING, "localhost");
     }
     @Override
     public String beforeCommit(TransactionData transactionData) throws Exception {
@@ -101,7 +96,7 @@ public class ChangeListenerEventHandler implements TransactionEventHandler<Strin
 				changeEvent = new ChangeEventNodeChanged(node.getId());
 				changeEvents.put(node.getId(), changeEvent);
 			}
-			changeEvent.addProperty(key, valueString, oldValueString);
+			changeEvent.getPayload().addProperty(key, valueString, oldValueString);
 		}
 		
 		// relationship property changes
@@ -117,7 +112,7 @@ public class ChangeListenerEventHandler implements TransactionEventHandler<Strin
 				changeEvent = new ChangeEventRelationshipChanged(relationship.getId());
 				changeEvents.put(relationship.getId(), changeEvent);
 			}
-			changeEvent.addProperty(key, valueString, oldValueString);
+			changeEvent.getPayload().addProperty(key, valueString, oldValueString);
 		}
 
         for (ChangeEvent changeEvent : changeEvents.values()) {

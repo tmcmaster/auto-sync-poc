@@ -6,15 +6,18 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 //import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEvent;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventNodeChanged;
@@ -22,6 +25,7 @@ import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisShardInfo;
 
+@Service
 public class RedisService {
 	public static final Logger LOG = LoggerFactory.getLogger(RedisService.class);
 
@@ -30,16 +34,18 @@ public class RedisService {
 		public static final String INCOMING = "incoming-events";
 	}
 	
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private ObjectMapper objectMapper;
 	private RedisConnectionFactory connectionFactory;
 	private String topic;
 	
-	public RedisService(String topic)
+	public RedisService(@Value("${app.redis.topic:default_topic}") String topic, @Value("${app.redis.host:localhost}") String host)
 	{
-		JedisShardInfo config = new JedisShardInfo("localhost");
+		JedisShardInfo config = new JedisShardInfo(host);
 		//RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("localhost",6379);
 		this.connectionFactory = new JedisConnectionFactory(config);
 		this.topic = topic;
+		this.objectMapper = new ObjectMapper();
+		this.objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 	}
 	
 	public void sendChangeEvent(ChangeEvent changeEvent) {

@@ -1,0 +1,4 @@
+app:
+  redis:
+    topic: outgoing-events
+    hostname: localhost 

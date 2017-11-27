@@ -58,7 +58,7 @@ public class TransactionDataTransformer {
 				changeEvent = new ChangeEventNodeChanged(node.getId());
 				changeEvents.put(node.getId(), changeEvent);
 			}
-			changeEvent.addProperty(key, valueString, oldValueString);
+			changeEvent.getPayload().addProperty(key, valueString, oldValueString);
 		}
 		
 		// relationship property changes
@@ -74,7 +74,7 @@ public class TransactionDataTransformer {
 				changeEvent = new ChangeEventRelationshipChanged(relationship.getId());
 				changeEvents.put(relationship.getId(), changeEvent);
 			}
-			changeEvent.addProperty(key, valueString, oldValueString);
+			changeEvent.getPayload().addProperty(key, valueString, oldValueString);
 		}
 		return changeEvents.values();
 	}
@@ -93,7 +93,7 @@ public class TransactionDataTransformer {
 				changeEvent = new ChangeEventNodeChanged(node.getId());
 				changeEvents.put(node.getId(), changeEvent);
 			}
-			changeEvent.addProperty(key, valueString, oldValueString);
+			changeEvent.getPayload().addProperty(key, valueString, oldValueString);
 		}
 		
 		return changeEvents.values();
@@ -113,7 +113,7 @@ public class TransactionDataTransformer {
 				changeEvent = new ChangeEventRelationshipChanged(relationship.getId());
 				changeEvents.put(relationship.getId(), changeEvent);
 			}
-			changeEvent.addProperty(key, valueString, oldValueString);
+			changeEvent.getPayload().addProperty(key, valueString, oldValueString);
 		}
 		return changeEvents.values();
 	}
