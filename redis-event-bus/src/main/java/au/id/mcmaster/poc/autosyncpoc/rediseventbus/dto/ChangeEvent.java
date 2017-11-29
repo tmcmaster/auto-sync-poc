@@ -10,9 +10,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	    property = "type")
 	@JsonSubTypes({
 	    @Type(value = ChangeEventNodeAdded.class, name = "NODE_ADDED"),
-	    @Type(value = ChangeEventNodeChanged.class, name = "NODE_CHANGED"),
 	    @Type(value = ChangeEventCreationReceipt.class, name = "NODE_CREATION_RECEIPT"),
-	    @Type(value = ChangeEventNodeDeleted.class, name = "NODE_DELETED") })
+	    @Type(value = ChangeEventNodeChanged.class, name = "NODE_CHANGED"),
+	    @Type(value = ChangeEventNodeDeleted.class, name = "NODE_DELETED"),
+	    @Type(value = ChangeEventRelationshipAdded.class, name = "RELATIONSHIP_ADDED"),
+	    @Type(value = ChangeEventRelationshipChanged.class, name = "RELATIONSHIP_CHANGED"),
+	    @Type(value = ChangeEventRelationshipDeleted.class, name = "RELATIOINSHIP_DELETED")
+	})
 public abstract class ChangeEvent {
 	private Type type;
 	private long id;
@@ -62,8 +66,8 @@ public abstract class ChangeEvent {
 	public static enum Type {
 		NODE_ADDED,NODE_DELETED,NODE_CHANGED,
 		RELATIONSHIP_ADDED,RELATIOINSHIP_DELETED,RELATIONSHIP_CHANGED,
-		NODE_PROPERTY_ADDED,NODE_PROPERTY_DELETED,NODE_PROPERTY_CHANGED,
-		RELATIONSHIP_PROPERTY_ADDED,RELATIONSHIP_PROPERTY_DELETED,RELATIONSHIP_PROPERTY_CHANGED,
+		//NODE_PROPERTY_ADDED,NODE_PROPERTY_DELETED,NODE_PROPERTY_CHANGED,
+		//RELATIONSHIP_PROPERTY_ADDED,RELATIONSHIP_PROPERTY_DELETED,RELATIONSHIP_PROPERTY_CHANGED,
 		NODE_CREATION_RECEIPT,RELATIONSHIP_CREATION_RECEIPT
 	}
 

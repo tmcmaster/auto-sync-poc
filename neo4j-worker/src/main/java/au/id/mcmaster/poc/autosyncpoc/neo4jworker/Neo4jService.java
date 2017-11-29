@@ -1,6 +1,5 @@
 package au.id.mcmaster.poc.autosyncpoc.neo4jworker;
 
-import java.util.Iterator;
 import java.util.stream.Collectors;
 
 import javax.annotation.PreDestroy;
@@ -9,20 +8,10 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.Statement;
 import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.ogm.model.Node;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
+import org.neo4j.driver.v1.Transaction;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEvent;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventCreationReceipt;
@@ -30,14 +19,15 @@ import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventNodeAdded;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventNodeChanged;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventNodeDeleted;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeMetadata;
-import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.KeyValue;
 
 @Service
 public class Neo4jService {
 	private Driver driver;
+	Session session;
 	
 	public Neo4jService() {
 		this.driver = GraphDatabase.driver("bolt://localhost:7687");
+		session = driver.session();
 	}
 	
 	private String getPropertyString(ChangeEvent changeEvent) {
@@ -45,17 +35,26 @@ public class Neo4jService {
 					.map(entry -> entry.getKey() + ":'" + entry.getValue() + "'")
 					.collect(Collectors.joining(", ")) + "}";
 	}
+
+	private String getSourceProperties(ChangeEventNodeAdded changeEvent) {
+		return String.format("{sourceId:'%s',sourceEntity:'%s',sourceSystem:'%s'}", 
+				changeEvent.getMetadata().getSourceId(),
+				changeEvent.getMetadata().getSourceEntity(),
+				changeEvent.getMetadata().getSourceSystem());
+	}
 	
 	private void executeCypher(String cyperString) {
-		System.out.println("--- Cypher String: " + cyperString);
-		
-		Session session = driver.session();
-		StatementResult result = session.run(cyperString);
+		System.out.println("--- Cypher String: " + cyperString);		
+
+		Transaction transaction = session.beginTransaction();
+		Statement statement = new Statement(cyperString);
+		StatementResult result = transaction.run(statement);
 		if (result.hasNext()) {
 			Record record = result.next();
 			System.out.println("--- Result: " + record.asMap());			
 		}
-		session.close();
+		transaction.success();
+		transaction.close();
 	}
 	
 	@PreDestroy
@@ -65,15 +64,18 @@ public class Neo4jService {
 
 	public void nodeAdded(ChangeEventNodeAdded changeEvent)
 	{
-		String propertyString = getPropertyString(changeEvent);
-		String cypher = String.format("CREATE (node %s)",propertyString);
+		//String propertyString = getPropertyString(changeEvent);
+		//String cypher = String.format("MERGE (node %s)",propertyString);
+		String nodeProperties = getPropertyString(changeEvent);
+		String sourceProperties = getSourceProperties(changeEvent);
+		String cypher = String.format("MERGE (node %s)-[:SYNC]->(source:Source %s)", nodeProperties, sourceProperties);
 		executeCypher(cypher);
 	}
 
 	public void nodeDeleted(ChangeEventNodeDeleted changeEvent)
 	{
 		long id = changeEvent.getId();
-		String cypher = String.format("MATCH (node) WHERE id(node)=%s DELETE node", id);
+		String cypher = String.format("MATCH (node)-[r]->(source) WHERE id(node)=%s DELETE r,node,source", id);
 		executeCypher(cypher);
 	}
 
@@ -81,7 +83,7 @@ public class Neo4jService {
 	{
 		long id = changeEvent.getId();
 		String propertyString = getPropertyString(changeEvent);
-		String cypher = String.format("MATCH (node) WHERE id(node)=%s SET node += %s return node", id,propertyString);
+		String cypher = String.format("MERGE (node) WHERE id(node)=%s SET node += %s return node", id,propertyString);
 		executeCypher(cypher);
 	}
 
@@ -89,7 +91,7 @@ public class Neo4jService {
 	public void nodeCreationReceipt(ChangeEventCreationReceipt changeEvent) {
 		long id = changeEvent.getId();
 		String propertyString = getCreationReceiptPropertyString(changeEvent);
-		String cypher = String.format("MATCH (node) WHERE id(node) = %s CREATE (source:Source %s)<-[:SYNC]-(node);", id,propertyString);
+		String cypher = String.format("MATCH (node) WHERE id(node) = %s MERGE (source:Source %s)<-[:SYNC]-(node);", id,propertyString);
 		executeCypher(cypher);
 	}
 

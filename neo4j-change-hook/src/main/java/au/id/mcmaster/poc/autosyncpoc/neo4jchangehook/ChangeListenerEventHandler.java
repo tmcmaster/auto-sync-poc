@@ -25,6 +25,7 @@ import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventRelationshipC
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventRelationshipDeleted;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,36 +35,69 @@ public class ChangeListenerEventHandler implements TransactionEventHandler<Strin
     
     private GraphDatabaseService gds;
     private RedisService redisService;
+    private TransactionDataTransformer transactionDataTransformer;
     
     public ChangeListenerEventHandler()
     {
         this(null);
-        logger.log(Level.FINE, "---- Creating the ExampleEventHandler : Constructor -----");
+        logger.log(Level.FINE, "--+-- Creating the ExampleEventHandler : Constructor -----");
     }
     
     public ChangeListenerEventHandler(GraphDatabaseService gds) {
-        logger.log(Level.FINE, "---- Creating the ExampleEventHandler : Constructor -----");
+        logger.log(Level.FINE, "--+-- Creating the ExampleEventHandler : Constructor -----");
         this.gds = gds;
         this.redisService = new RedisService(RedisService.Topics.OUTGOING, "localhost");
     }
     @Override
     public String beforeCommit(TransactionData transactionData) throws Exception {
-    		logger.log(Level.FINE, "---- ExampleEventHandler : beforeCommit -----");
-    		return "Nothing to was done before transaction commit.";
+    		System.out.println("--+-- ExampleEventHandler : beforeCommit -----");
+    		try
+    		{
+    			Iterable<ChangeEvent> changeEvents = new TransactionDataTransformer().process(transactionData);
+    			for (ChangeEvent changeEvent : changeEvents) {
+        			redisService.sendChangeEvent(changeEvent);
+        		}
+    		}
+    		catch (Exception e) 
+    		{
+    			e.printStackTrace();
+    		}
+//    		for (Node node : transactionData.createdNodes()) {
+//	    		if (!nodeIsSourceNode(node)) {
+//				System.out.println(String.format("------------ Node has no Source label: %s - %s", node.getId(), nodeIsSourceNode(node)));
+//			}
+//    		}
+    		
+    		return "Before transaction commit was successful.";
     }
 
     @Override
     public void afterCommit(TransactionData transactionData, String result) {
+        System.out.println("--+-- ExampleEventHandler : afterCommit -----");
+    }
+    
+    public void afterCommitHold(TransactionData transactionData, String result) {
         System.out.println("---- ExampleEventHandler : afterCommit -----");
         
         // may need to manage a list as well, if there is a need to specify an event order.
 		Map<Long,ChangeEvent> changeEvents = new HashMap<Long,ChangeEvent>();
 
 		// added nodes
+		System.out.println("------**-- Processing created Nodes.");
 		for (Node node : transactionData.createdNodes()) {
-			ChangeEvent changeEvent = new ChangeEventNodeAdded(node.getId());
-			changeEvents.put(node.getId(), changeEvent);
+			System.out.println("------**-- Node has been created: " + node.getId());
+			if (!nodeIsSourceNode(node)) {
+				System.out.println("------------ Node has no Source label: " + node.getId());
+				ChangeEvent changeEvent = new ChangeEventNodeAdded(node.getId());
+				changeEvents.put(node.getId(), changeEvent);
+			}
+			else
+			{
+				System.out.println("------------ Node has Source label: " + node.getId());
+			}
+			System.out.flush();
 	    }
+		System.out.println("------**-- Created Nodes have been processed");
 		
 		// deleted nodes
 		for (Node node : transactionData.deletedNodes()) {
@@ -120,7 +154,22 @@ public class ChangeListenerEventHandler implements TransactionEventHandler<Strin
     		}
     }
     
-    @Override
+    private boolean nodeIsSourceNode(Node node) {
+    		//Iterator<Label> labels = node.getLabels().iterator();
+    	
+//		while (labels.hasNext()) {
+//			 String label = labels.next().name();
+//			 System.out.println("------------ Node labels: " + label);
+//			 if ("Source".equals(label))
+//			 {
+//				 return true;
+//			 }
+//		}
+		
+		return false;
+	}
+
+	@Override
     public void afterRollback(TransactionData transactionData, String result) {
     		logger.log(Level.FINE, "Something bad happend, Harry: " + result);
     }

@@ -22,10 +22,10 @@ public class TestPublishingMessages implements CommandLineRunner
     public void run(String... args) throws Exception {
 		//testIncomingNodeAdded();
 		//testIncomingNodeChanged();
-		//testIncomingNodeDeleted();
-		testIncomingNodeCreationReceipt();
+		testIncomingNodeDeleted();
+		//testIncomingNodeCreationReceipt();
 		
-		testOutgoingNodeAdded();
+		//testOutgoingNodeAdded();
 		//testOutgoingNodeChanged();
 		//testOutgoingNodeDeleted();
 	}
@@ -36,6 +36,7 @@ public class TestPublishingMessages implements CommandLineRunner
 			setPayload(new ChangePayload() {{
 				addProperty("firstname", "Malcolm",null);
 				addProperty("lastname", "Reynolds",null);
+				addProperty("phone", "0404 404 403",null);
 			}});
 			setMetadata(new ChangeMetadata() {{
 				setSourceEntity("Contact");
@@ -59,7 +60,7 @@ public class TestPublishingMessages implements CommandLineRunner
 	
 	private void testIncomingNodeDeleted() {
 		new RedisService(RedisService.Topics.INCOMING, "localhost").sendChangeEvent(new ChangeEventNodeDeleted() {{
-			setId(120);
+			setId(50);
 			setMetadata(new ChangeMetadata() {{
 				setSourceEntity("Contact");
 				setSourceEntity("RethinkDB");

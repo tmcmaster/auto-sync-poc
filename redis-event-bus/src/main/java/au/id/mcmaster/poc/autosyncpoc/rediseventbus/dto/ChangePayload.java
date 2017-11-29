@@ -13,9 +13,13 @@ public class ChangePayload {
 	}
 	
 	public void addProperty(String key, String value, String oldValue) {
-		this.properties.add(new KeyValue(key,value,oldValue));
+		addProperty(new KeyValue(key,value,oldValue));
 	}
 	
+	public void addProperty(KeyValue keyValue) {
+		this.properties.add(keyValue);
+	}
+
 	public Collection<String> getLabels() {
 		return new ArrayList<String>(this.labels);
 	}
@@ -23,4 +27,5 @@ public class ChangePayload {
 	public void addLabel(String label) {
 		this.labels.add(label);
 	}
+
 }

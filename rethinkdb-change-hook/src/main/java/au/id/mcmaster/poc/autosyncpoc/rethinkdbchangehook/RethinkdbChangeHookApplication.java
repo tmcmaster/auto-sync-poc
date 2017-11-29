@@ -1,19 +1,36 @@
 package au.id.mcmaster.poc.autosyncpoc.rethinkdbchangehook;
 
+import java.util.HashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.stereotype.Component;
 
+import com.rethinkdb.RethinkDB;
+import com.rethinkdb.gen.ast.Changes;
+import com.rethinkdb.net.Connection;
+import com.rethinkdb.net.Cursor;
+
+import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEvent;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventNodeAdded;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventNodeChanged;
 import au.id.mcmaster.poc.autosyncpoc.rediseventbus.service.RedisService;
+import au.id.mcmaster.poc.autosyncpoc.rethinkdbchangehook.service.RethinkDBService;
 
 @SpringBootApplication
+@EnableAutoConfiguration
+@ComponentScan(basePackages={"au.id.mcmaster.poc.autosyncpoc"})
 public class RethinkdbChangeHookApplication implements CommandLineRunner {
-
+	
 	@Autowired
-	private RedisService redisService;
+	private RethinkDBService rethinkDBService;
+	
+	@Autowired
+	private EventProcessor eventProcessor;
 	
 	public static void main(String[] args) {
 		SpringApplication.run(RethinkdbChangeHookApplication.class, args);
@@ -21,21 +38,19 @@ public class RethinkdbChangeHookApplication implements CommandLineRunner {
 	
 	@Override
     public void run(String... args) throws Exception {
-		ChangeEventNodeChanged changeEventNodeChanged = new ChangeEventNodeChanged(89);
-		changeEventNodeChanged.getPayload().addProperty("firstname", "Jayne",null);
-		changeEventNodeChanged.getPayload().addProperty("lastname", "Cobb",null);
-		changeEventNodeChanged.getPayload().addProperty("phone", "0404 404 404",null);
-		redisService.sendChangeEvent(changeEventNodeChanged);
-		
-//		ChangeEventNodeAdded changeEventNodeAdded = new ChangeEventNodeAdded();
-//		changeEventNodeAdded.getPayload().addProperty("firstname", "Jayne",null);
-//		changeEventNodeAdded.getPayload().addProperty("lastname", "Cobb",null);
-//		changeEventNodeAdded.getMetadata().setSourceEntity("Contact");
-//		changeEventNodeAdded.getMetadata().setSourceEntity("RethinkDB");
-//		redisService.sendChangeEvent(changeEventNodeAdded);
-
-//		ChangeEventNodeDeleted changeEventNodeDeleted = new ChangeEventNodeDeleted(91);
-//		redisService.sendChangeEvent(changeEventNodeDeleted);
-
+		rethinkDBService.registerListener(eventProcessor);
     }
+}
+
+@Component
+class EventProcessor implements RethinkDBService.ChangeEventListener {
+
+	@Autowired
+	private RedisService redisService;
+
+	@Override
+	public void process(ChangeEvent changeEvent) {
+		redisService.sendChangeEvent(changeEvent);
+	}
+	
 }

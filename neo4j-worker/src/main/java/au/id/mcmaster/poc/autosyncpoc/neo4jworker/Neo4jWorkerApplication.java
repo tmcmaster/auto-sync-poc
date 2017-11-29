@@ -65,7 +65,7 @@ class Worker {
 	}
 	
 	@EventListener(condition="{#changeEvent.isType('NODE_CHANGED')}")
-	public void handleNodeCreatedEvent(ChangeEventNodeChanged changeEvent) {
+	public void handleNodeChangedEvent(ChangeEventNodeChanged changeEvent) {
 		log.debug("-- Node Created " + changeEvent);
 		neo4jService.nodeChanged(changeEvent);
 	}
@@ -77,7 +77,7 @@ class Worker {
 	}
 
 	@EventListener(condition="{#changeEvent.isType('NODE_CREATION_RECEIPT')}")
-	public void handleNodeDeletedEvent(ChangeEventCreationReceipt changeEvent) {
+	public void handleCreationReceiptEvent(ChangeEventCreationReceipt changeEvent) {
 		log.debug("-- Node Deleted " + changeEvent.isType("NODE_CREATION_RECEIPT"));
 		neo4jService.nodeCreationReceipt(changeEvent);
 	}

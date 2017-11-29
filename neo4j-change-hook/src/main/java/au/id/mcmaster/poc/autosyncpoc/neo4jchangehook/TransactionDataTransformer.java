@@ -1,8 +1,11 @@
 package au.id.mcmaster.poc.autosyncpoc.neo4jchangehook;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.event.PropertyEntry;
@@ -18,16 +21,26 @@ import au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto.ChangeEventRelationshipD
 
 public class TransactionDataTransformer {
 
-	public Iterable<ChangeEvent> process(TransactionData transactionData) {
+	public Collection<ChangeEvent> process(TransactionData transactionData) {
 		Map<Long,ChangeEvent> changeEvents = new HashMap<Long,ChangeEvent>();
 
 		// added nodes
+		System.out.println("------**-- processing added nodes.");
 		for (Node node : transactionData.createdNodes()) {
-			ChangeEvent changeEvent = new ChangeEventNodeAdded(node.getId());
-			changeEvents.put(node.getId(), changeEvent);
+			System.out.println("------**-- Node has been created: " + node.getId());
+			if (!nodeIsSourceNode(node)) {
+				System.out.println("------------ Node has no Source label: " + node.getId());
+				ChangeEvent changeEvent = new ChangeEventNodeAdded(node.getId());
+				changeEvents.put(node.getId(), changeEvent);
+			}
+			else
+			{
+				System.out.println("------------ Node has Source label: " + node.getId());
+			}
 	    }
 		
 		// deleted nodes
+		System.out.println("------**-- processing deleted nodes.");
 		for (Node node : transactionData.deletedNodes()) {
 			ChangeEvent changeEvent = new ChangeEventNodeDeleted(node.getId());
 			changeEvents.put(node.getId(), changeEvent);
@@ -79,7 +92,7 @@ public class TransactionDataTransformer {
 		return changeEvents.values();
 	}
 
-	public Iterable<ChangeEvent> getNodeChangedEvents(TransactionData transactionData) {
+	private Iterable<ChangeEvent> getNodeChangedEvents(TransactionData transactionData) {
 		Map<Long,ChangeEvent> changeEvents = new HashMap<Long,ChangeEvent>();
 		for (PropertyEntry<Node> propertyEntry : transactionData.assignedNodeProperties()) {
 			Node node = propertyEntry.entity();
@@ -99,7 +112,7 @@ public class TransactionDataTransformer {
 		return changeEvents.values();
 	}
 	
-	public Iterable<ChangeEvent> getRelationshipChangedEvents(TransactionData transactionData) {
+	private Iterable<ChangeEvent> getRelationshipChangedEvents(TransactionData transactionData) {
 		Map<Long,ChangeEvent> changeEvents = new HashMap<Long,ChangeEvent>();
 		for (PropertyEntry<Relationship> propertyEntry : transactionData.assignedRelationshipProperties()) {
 			Relationship relationship = propertyEntry.entity();
@@ -117,4 +130,19 @@ public class TransactionDataTransformer {
 		}
 		return changeEvents.values();
 	}
+	
+    private boolean nodeIsSourceNode(Node node) {
+    		Iterator<Label> labels = node.getLabels().iterator();
+
+		while (labels.hasNext()) {
+			 String label = labels.next().name();
+			 System.out.println("------------ Node labels: " + label);
+			 if ("Source".equals(label))
+			 {
+				 return true;
+			 }
+		}
+	
+	return false;
+}
 }
