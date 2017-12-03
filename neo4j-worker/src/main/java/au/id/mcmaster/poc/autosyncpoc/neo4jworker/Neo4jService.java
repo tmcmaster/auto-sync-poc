@@ -36,7 +36,7 @@ public class Neo4jService {
 					.collect(Collectors.joining(", ")) + "}";
 	}
 
-	private String getSourceProperties(ChangeEventNodeAdded changeEvent) {
+	private String getSourceProperties(ChangeEvent changeEvent) {
 		return String.format("{sourceId:'%s',sourceEntity:'%s',sourceSystem:'%s'}", 
 				changeEvent.getMetadata().getSourceId(),
 				changeEvent.getMetadata().getSourceEntity(),
@@ -68,7 +68,9 @@ public class Neo4jService {
 		//String cypher = String.format("MERGE (node %s)",propertyString);
 		String nodeProperties = getPropertyString(changeEvent);
 		String sourceProperties = getSourceProperties(changeEvent);
-		String cypher = String.format("MERGE (node %s)-[:SYNC]->(source:Source %s)", nodeProperties, sourceProperties);
+		//String cypher = String.format("MERGE (node %s)-[:SYNC]->(source:Source %s),(node)-[:SOURCE]-(source)", nodeProperties, sourceProperties);
+		//String cypher = String.format("MERGE (node %s)-[:SOURCE]->(source:Source %s) MERGE (node)-[:SYNC]-(source)", nodeProperties, sourceProperties);
+		String cypher = String.format("MATCH (node %s) MERGE (node)-[:SYNC]-(source:Source %s)", nodeProperties, sourceProperties);
 		executeCypher(cypher);
 	}
 
@@ -90,17 +92,17 @@ public class Neo4jService {
 	// This need to create a new node and a relationship
 	public void nodeCreationReceipt(ChangeEventCreationReceipt changeEvent) {
 		long id = changeEvent.getId();
-		String propertyString = getCreationReceiptPropertyString(changeEvent);
-		String cypher = String.format("MATCH (node) WHERE id(node) = %s MERGE (source:Source %s)<-[:SYNC]-(node);", id,propertyString);
+		String propertyString = getSourceProperties(changeEvent);
+		String cypher = String.format("MATCH (node) WHERE id(node) = %s MERGE (source:Source %s)<-[:SYNC]-(node);", id, propertyString);
 		executeCypher(cypher);
 	}
 
-	private String getCreationReceiptPropertyString(ChangeEventCreationReceipt changeEvent) {
-		ChangeMetadata metadata = changeEvent.getMetadata();
-		String sourceId = metadata.getSourceId();
-		String sourceEntity = metadata.getSourceEntity();
-		String sourceSystem = metadata.getSourceSystem();
-		
-		return String.format("{uuid:'%s',entity:'%s',system:'%s'}", sourceId, sourceEntity, sourceSystem);
-	}
+//	private String getCreationReceiptPropertyString(ChangeEventCreationReceipt changeEvent) {
+//		ChangeMetadata metadata = changeEvent.getMetadata();
+//		String sourceId = metadata.getSourceId();
+//		String sourceEntity = metadata.getSourceEntity();
+//		String sourceSystem = metadata.getSourceSystem();
+//		
+//		return String.format("{uuid:'%s',entity:'%s',system:'%s'}", sourceId, sourceEntity, sourceSystem);
+//	}
 }

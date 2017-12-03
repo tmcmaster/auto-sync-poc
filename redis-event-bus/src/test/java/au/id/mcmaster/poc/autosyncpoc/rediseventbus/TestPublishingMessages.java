@@ -18,11 +18,20 @@ public class TestPublishingMessages implements CommandLineRunner
 		SpringApplication.run(TestPublishingMessages.class, args);
 	}
 	
+	private static long TEST_ID = 72;
+	private static String TEST_FIRSTNAME = "Jayne";
+	private static String TEST_LASTNAME = "Cobb";
+	private static String TEST_PHONE = "0404 404 404";
+	private static String TEST_EMAIL = "jayne.cobb@firefly.com";
+	private static String TEST_UUID = "f77a368b-cf71-4a1c-a3ef-503711335e2d";
+	private static String TEST_ENTITY = "Contact";
+	private static String TEST_SYSTEM = "TESTING";
+	
 	@Override
     public void run(String... args) throws Exception {
-		//testIncomingNodeAdded();
+		testIncomingNodeAdded();
 		//testIncomingNodeChanged();
-		testIncomingNodeDeleted();
+		//testIncomingNodeDeleted();
 		//testIncomingNodeCreationReceipt();
 		
 		//testOutgoingNodeAdded();
@@ -32,87 +41,105 @@ public class TestPublishingMessages implements CommandLineRunner
 
 	private void testIncomingNodeAdded() {
 		new RedisService(RedisService.Topics.INCOMING, "localhost").sendChangeEvent(new ChangeEventNodeAdded() {{
-			setId(10);
+			//setId(TEST_ID);
 			setPayload(new ChangePayload() {{
-				addProperty("firstname", "Malcolm",null);
-				addProperty("lastname", "Reynolds",null);
-				addProperty("phone", "0404 404 403",null);
+				addProperty("firstname", TEST_FIRSTNAME,null);
+				addProperty("lastname", TEST_LASTNAME,null);
+				addProperty("phone", TEST_PHONE,null);
 			}});
 			setMetadata(new ChangeMetadata() {{
-				setSourceEntity("Contact");
-				setSourceEntity("RethinkDB");
+				setSourceId(TEST_UUID);
+				setSourceEntity(TEST_ENTITY);
+				setSourceSystem(TEST_SYSTEM);
 			}});
 		}});
 	}
 	
 	private void testIncomingNodeChanged() {
 		new RedisService(RedisService.Topics.INCOMING, "localhost").sendChangeEvent(new ChangeEventNodeChanged() {{
-			setId(120);
+			setId(TEST_ID);
 			setPayload(new ChangePayload() {{
-				addProperty("phone", "0404 404 404",null);
+				addProperty("phone", TEST_PHONE,null);
 			}});
 			setMetadata(new ChangeMetadata() {{
-				setSourceEntity("Contact");
-				setSourceEntity("RethinkDB");
+				setSourceId(TEST_UUID);
+				setSourceEntity(TEST_ENTITY);
+				setSourceSystem(TEST_SYSTEM);
 			}});
 		}});
 	}
 	
 	private void testIncomingNodeDeleted() {
 		new RedisService(RedisService.Topics.INCOMING, "localhost").sendChangeEvent(new ChangeEventNodeDeleted() {{
-			setId(50);
+			setId(TEST_ID);
 			setMetadata(new ChangeMetadata() {{
-				setSourceEntity("Contact");
-				setSourceEntity("RethinkDB");
+				setSourceId(TEST_UUID);
+				setSourceEntity(TEST_ENTITY);
+				setSourceSystem(TEST_SYSTEM);
 			}});
 		}});
 	}
 	
 	private void testIncomingNodeCreationReceipt() {
 		new RedisService(RedisService.Topics.INCOMING, "localhost").sendChangeEvent(new ChangeEventCreationReceipt() {{
-			setId(58);
+			setId(TEST_ID);
 			setMetadata(new ChangeMetadata() {{
-				setSourceId("f77a368b-cf71-4a1c-a3ef-503711335e2c");
-				setSourceEntity("Contact");
-				setSourceSystem("RethinkDB");
+				setSourceId(TEST_UUID);
+				setSourceEntity(TEST_ENTITY);
+				setSourceSystem(TEST_SYSTEM);
 			}});
 		}});
 	}
 
 	private void testOutgoingNodeAdded() {
 		new RedisService(RedisService.Topics.OUTGOING, "localhost").sendChangeEvent(new ChangeEventNodeAdded() {{
-			setId(10);
+			setId(TEST_ID);
 			setPayload(new ChangePayload() {{
-				addProperty("firstname", "Malcolm",null);
-				addProperty("lastname", "Reynolds",null);
+				addProperty("firstname", TEST_FIRSTNAME,null);
+				addProperty("lastname", TEST_LASTNAME,null);
 			}});
 			setMetadata(new ChangeMetadata() {{
-				setSourceEntity("Contact");
-				setSourceEntity("RethinkDB");
+				setSourceId(TEST_UUID);
+				setSourceEntity(TEST_ENTITY);
+				setSourceSystem(TEST_SYSTEM);
 			}});
 		}});
 	}
 	
 	private void testOutgoingNodeChanged() {
 		new RedisService(RedisService.Topics.OUTGOING, "localhost").sendChangeEvent(new ChangeEventNodeChanged() {{
-			setId(10);
+			setId(TEST_ID);
 			setPayload(new ChangePayload() {{
-				addProperty("phone", "0404 404 404",null);
+				addProperty("phone", TEST_PHONE,null);
 			}});
 			setMetadata(new ChangeMetadata() {{
-				setSourceEntity("Contact");
-				setSourceEntity("RethinkDB");
+				setSourceId(TEST_UUID);
+				setSourceEntity(TEST_ENTITY);
+				setSourceSystem(TEST_SYSTEM);
 			}});
 		}});
 	}
 	
 	private void testOutgoingNodeDeleted() {
 		new RedisService(RedisService.Topics.OUTGOING, "localhost").sendChangeEvent(new ChangeEventNodeDeleted() {{
-			setId(10);
+			setId(TEST_ID);
 			setMetadata(new ChangeMetadata() {{
-				setSourceEntity("Contact");
-				setSourceEntity("RethinkDB");
+				setSourceId(TEST_UUID);
+				setSourceEntity(TEST_ENTITY);
+				setSourceSystem(TEST_SYSTEM);
 			}});
 		}});
 	}
 }
+
+/**
+
+r.db('poc').table('contact').insert({
+"firstname":  "Jayne" ,
+"lastname":  "Cobb" ,
+"phone":  "0404 404 401"
+})
+
+ *
+ *
+ */

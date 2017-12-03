@@ -1,5 +1,8 @@
 package au.id.mcmaster.poc.autosyncpoc.neo4jrest.control;
 
+import javax.ws.rs.Consumes;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.http.HttpStatus;
@@ -28,6 +31,7 @@ public abstract class CrudController<T extends BasePOJO, R extends Neo4jReposito
 		return this.repository.save(object);
 	}
 	
+	@Consumes({"application/xml","text/plain"})
 	@RequestMapping(method = RequestMethod.GET, value="/{objectId}")
 	public ResponseEntity<T> getObject(@PathVariable long objectId) {
 		T object = this.repository.findOne(objectId,1);

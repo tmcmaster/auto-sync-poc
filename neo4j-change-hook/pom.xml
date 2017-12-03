@@ -51,6 +51,11 @@
             <artifactId>neo4j-lucene-index</artifactId>
             <version>${neo4j.version}</version>
         </dependency>
+        <dependency>
+		   <groupId>org.springframework.data</groupId>
+		   <artifactId>spring-data-neo4j</artifactId>
+		   <version>4.2.0.RELEASE</version>
+		</dependency>
         
         <!-- Local Dependencies -->
         <dependency>

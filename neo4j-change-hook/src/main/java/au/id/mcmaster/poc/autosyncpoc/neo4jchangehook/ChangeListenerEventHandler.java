@@ -53,9 +53,12 @@ public class ChangeListenerEventHandler implements TransactionEventHandler<Strin
     		System.out.println("--+-- ExampleEventHandler : beforeCommit -----");
     		try
     		{
-    			Iterable<ChangeEvent> changeEvents = new TransactionDataTransformer().process(transactionData);
+    			
+    			Iterable<ChangeEvent> changeEvents = new TransactionDataTransformer().process(transactionData, gds);
     			for (ChangeEvent changeEvent : changeEvents) {
-        			redisService.sendChangeEvent(changeEvent);
+    				if (!changeEvent.isSyncNode()) {
+    					redisService.sendChangeEvent(changeEvent);
+    				}
         		}
     		}
     		catch (Exception e) 

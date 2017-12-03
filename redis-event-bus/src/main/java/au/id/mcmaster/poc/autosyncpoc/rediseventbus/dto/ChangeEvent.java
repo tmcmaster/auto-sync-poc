@@ -1,5 +1,6 @@
 package au.id.mcmaster.poc.autosyncpoc.rediseventbus.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -73,5 +74,12 @@ public abstract class ChangeEvent {
 
 	public boolean isType(String typeString) {
 		return this.type == Type.valueOf(typeString);
+	}
+	
+	@JsonIgnore
+	public boolean isSyncNode() {
+		return getPayload().getLabels().contains("Source") 
+				|| getPayload().getLabels().contains("SYNC") 
+				|| getPayload().getLabels().contains("SOURCE");
 	}
 }

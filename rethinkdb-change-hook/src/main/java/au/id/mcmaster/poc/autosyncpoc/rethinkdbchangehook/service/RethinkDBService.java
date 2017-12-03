@@ -74,7 +74,7 @@ public class RethinkDBService {
 		Map<String, Object> map = (newValue == null ? oldValue : newValue);
 		
 		return newValue.keySet().stream()
-				.filter(key -> (map.get(key) == null || map.get(key) instanceof String))
+				.filter(key -> (!"id".equals(key) && (map.get(key) == null || map.get(key) instanceof String)))
 				.map(key -> new KeyValue(key,(newValue == null ? null : (String)newValue.get(key)), (oldValue == null ? null : (String)oldValue.get(key))))
 				.collect(Collectors.toList());
 	}
